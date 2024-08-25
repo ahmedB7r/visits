@@ -1,0 +1,69 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id       Int     @id @default(autoincrement())
+  userName String  @unique
+  name     String?
+  role     Role    @default(sec)
+  office   Office? @relation(fields: [officeId], references: [id])
+  officeId Int?
+  password String
+}
+
+model Office {
+  id     Int     @id @default(autoincrement())
+  name   String  @unique
+  users  User[]
+  visits Visit[]
+}
+
+enum Role {
+  sec
+  office
+  admin
+}
+
+model Visitor {
+  id        Int       @id @default(autoincrement())
+  name      String    @unique
+  rank      String?
+  jobTitle  String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime? @updatedAt
+  visits    Visit[]
+}
+
+model Visit {
+  id        Int         @id @default(autoincrement())
+  visitorId Int
+  visitor   Visitor     @relation(fields: [visitorId], references: [id], onDelete: Cascade)
+  desc      String?
+  arrivedAt DateTime?   @default(now())
+  getOutAt  DateTime?
+  status    VisitStatus @default(arrived)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime?   @updatedAt
+  office    Office      @relation(fields: [officeId], references: [id])
+  officeId  Int
+}
+
+enum VisitStatus {
+  waiting
+  cancelled
+  arrived
+  in
+  out
+}
